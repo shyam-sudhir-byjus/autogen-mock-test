@@ -15,3 +15,11 @@ bloom_mapper_dict = {
     'Evaluation': evaluate_list,
     'Creation': create_list
 }
+
+constraint_dict = {
+    "Bloom": "bloom",
+    "Difficulty": "difficulty",
+    "Question_Type": "type",
+    "Chapter_Distribution": "chapter",
+    "Topic_Distribution": "topic"
+}

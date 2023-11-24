@@ -1,6 +1,6 @@
 import pandas as pd
 from pymongo import MongoClient
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 class Weights:
     def __init__(self, city_school_question_tags_collection, city_school_location, input_data):
@@ -20,7 +20,8 @@ class Weights:
         self.buffer_qns_count = int(self.total_marks * 2)  
         self.is_solvable = True
         self.source_tag = None
-        self.qna_data = None  
+        self.qna_data = None 
+        self.chapter_weightage = [] 
 
     def _get_nearby_schools_data(self):
         """
@@ -651,15 +652,25 @@ class Weights:
             self.question_type_avg_weight = normalized_weights
             self.question_types_from_school_nearby = {q_types[i]: int(normalized_weights[i] * total_count) for i in range(len(q_types))}
 
+    def _get_chapter_weights(self):
+        if self.schools_nearby:
+            chapter_frequency = Counter(self.schools_nearby['chapter'])
+
+            total_chapters = len(self.schools_nearby['chapter'])
+
+            chapter_weightage = {chapter: frequency / total_chapters for chapter, frequency in chapter_frequency.items()}
+            self.chapter_weightage = chapter_weightage
+
     def _get_weights(self):
         self._get_nearby_schools_data()
+        self._get_chapter_weights()
         self._get_bloom_weights_from_db()
         self._get_difficulty_weights_from_db()
         self._get_question_type_weights_from_db()
         bloom_weights = list(zip(list(self.blooms_from_nearby_school), self.bloom_avg_weight))
         difficulty_weights = list(zip(list(self.difficulty_from_school_nearby), self.diff_avg_weight))
         question_type_weights = list(zip(list(self.question_types_from_school_nearby), self.question_type_avg_weight))
-        return bloom_weights, difficulty_weights, question_type_weights
+        return bloom_weights, difficulty_weights, question_type_weights, self.chapter_weightage
 
 
 if __name__ == "__main__":

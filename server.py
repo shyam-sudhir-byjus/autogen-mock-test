@@ -16,7 +16,7 @@ def get_questions():
     for data in res:
         data['_id'] = str(data['_id'])
         data['marks'] = str(data['marks'])
-    return jsonify({"res":res,"message": messages})
+    return jsonify({"questions":res,"properties": messages})
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=7002)

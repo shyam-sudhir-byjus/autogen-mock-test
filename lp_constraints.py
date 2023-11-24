@@ -1,27 +1,56 @@
-from pulp import LpProblem, LpVariable, lpSum, LpMinimize, LpStatus, LpBinary
+from pulp import LpProblem, LpVariable, lpSum, LpMinimize, LpStatus, LpBinary, const
 from weights import Weights
 from constants import *
 from db_utils import *
 from bson import ObjectId
 from common import *
+from new_common import *
+from collections import Counter
+
+def calculate_percentage(questions_list, bloom_weights, difficulty_weights, question_type_weights, topic_weights, chapter_weights):
+    questions_len = len(questions_list)
+
+    bloom_mapper_values = {bloom_type: set(bloom_mapper_dict[bloom_type]) for bloom_type, _ in bloom_weights}
+    difficulty_values = [difficulty_level for difficulty_level, _ in difficulty_weights]
+    q_type_values = [q_type for q_type, _ in question_type_weights]
+    topic_values = list(topic_weights.keys())
+    chapter_values = list(chapter_weights.keys())
+
+    counters = {
+        "bloom": Counter(q["bloom"] for q in questions_list),
+        "difficulty": Counter(q["difficulty"] for q in questions_list),
+        "q_type": Counter(q["type"] for q in questions_list),
+        "topic": Counter(q["topic"] for q in questions_list),
+        "chapter": Counter(q["chapter"] for q in questions_list),
+    }
+
+    bloom_percentages = {bloom_type: counters["bloom"][bloom] / questions_len for bloom_type, bloom in bloom_mapper_values.items()}
+    difficulty_percentages = {difficulty_level: counters["difficulty"][difficulty_level] / questions_len for difficulty_level in difficulty_values}
+    question_type_percentages = {q_type: counters["q_type"][q_type] / questions_len for q_type in q_type_values}
+    topic_percentages = {topic: counters["topic"][topic] / questions_len for topic in topic_values}
+    chapter_percentages = {chapter: counters["chapter"][chapter] / questions_len for chapter in chapter_values}
+    return (bloom_percentages, difficulty_percentages, question_type_percentages, topic_percentages, chapter_percentages)
+
 
 def pulp_solver(questions_list, similar_questions_list, input_data, most_frequent_questions, user_difficulty, total_marks):
 
     problem = LpProblem("Question_Selection", LpMinimize)
 
+    chapter_weights, topic_weights = get_chapter_topic_weights(questions_list)
+
     question_vars = {
         q["_id"]: LpVariable(f"Question_{q['_id']}", 0, 1, LpBinary) for q in questions_list
     }
 
-    average_difficulty = LpVariable("Average_Difficulty", user_difficulty - 2, user_difficulty + 2)
+    average_difficulty = LpVariable("Average_Difficulty", user_difficulty - 1, user_difficulty + 1)
     question_difficulties = lpSum([difficulty_mapper_dict[q["difficulty"]] * question_vars[q["_id"]] for q in questions_list])
     problem += (
-        average_difficulty <= question_difficulties / len(questions_list),
+        average_difficulty - 1 <= question_difficulties / len(questions_list),
         "Average_Difficulty_Lower_Constraint"
     )
 
     problem += (
-        question_difficulties / len(questions_list) <= average_difficulty,
+        question_difficulties / len(questions_list) <= average_difficulty + 1,
         "Average_Difficulty_Upper_Constraint"
     )
 
@@ -46,18 +75,25 @@ def pulp_solver(questions_list, similar_questions_list, input_data, most_frequen
             problem += const, name
 
     weights_instance = Weights(city_school_question_tags_collection, city_school_location, input_data)
-    bloom_weights, difficulty_weights, question_type_weights = weights_instance._get_weights()
+    bloom_weights, difficulty_weights, question_type_weights, chapter_weights_school = weights_instance._get_weights()
+
+    if chapter_weights_school != []:
+        chapter_weights = chapter_weights_school
+
+    tolerance = 0.1
 
     bloom_percentages = {bloom_type: lpSum([q["bloom"] in bloom_mapper_dict[bloom_type] for q in questions_list]) / len(questions_list) for bloom_type, _ in bloom_weights}
     difficulty_percentages = {difficulty_level: lpSum([q["difficulty"] == difficulty_level for q in questions_list]) / len(questions_list) for difficulty_level, _ in difficulty_weights}
     question_type_percentages = {q_type: lpSum([q["type"] == q_type for q in questions_list]) / len(questions_list) for q_type, _ in question_type_weights}
+    topic_percentages = {topic: lpSum([q["topic"] == topic for q in questions_list]) / len(questions_list) for topic, _ in topic_weights.items()}
+    chapter_percentages = {chapter: lpSum([q["chapter"] == chapter for q in questions_list]) / len(questions_list) for chapter, _ in chapter_weights.items()}
 
-    tolerance = 0.3 
-
-    add_constraints(problem, bloom_weights, bloom_percentages, tolerance, "Bloom", questions_list)
-    add_constraints(problem, difficulty_weights, difficulty_percentages, tolerance, "Difficulty", questions_list)
-    add_constraints(problem, question_type_weights, question_type_percentages, tolerance, "Question_Type", questions_list)
-
+    add_constraints_bloom(problem, question_vars, questions_list, bloom_percentages, tolerance, total_marks)
+    add_constraints_difficult(problem, question_vars, questions_list, difficulty_percentages, tolerance, total_marks)
+    add_constraints_question_type(problem, question_vars, questions_list, question_type_percentages, tolerance, total_marks)
+    add_constraints_chapter(problem, question_vars, questions_list, chapter_percentages, tolerance, total_marks)
+    add_constraints_topic(problem, question_vars, questions_list, topic_percentages, tolerance, total_marks)
+    
     for q in most_frequent_questions:
         question_id = ObjectId(q['question_id'])
         if question_id in question_vars:
@@ -67,54 +103,18 @@ def pulp_solver(questions_list, similar_questions_list, input_data, most_frequen
     problem.solve()
 
     if LpStatus[problem.status] == "Optimal":
-        return successMsg(questions_list, question_vars)
-    else:
-        average_difficulty = LpVariable("Average_Difficulty", user_difficulty - 3, user_difficulty + 3)
-    
-    problem.solve()
+        return successMsg(questions_list, question_vars, chapter_weights, [])
 
-    if LpStatus[problem.status] == "Optimal":
-        return successMsg(questions_list, question_vars)
-
-    return solve_recursive(problem, questions_list, question_vars, [("most_frequent_question", most_frequent_questions),
+    properties, selected_questions, flag = solve_recursive(problem, questions_list, question_vars, [
+                                                        ("Average_Difficulty_Lower_Constraint", []),
                                                         ("Bloom", bloom_percentages),
+                                                        ("most_frequent_question", most_frequent_questions),
+                                                        ("QuestionType", question_type_percentages),
+                                                        ("Topic_Distribution", topic_percentages),
+                                                        ("AtLeastOneQuestionInChapter", chapter_questions),
+                                                        # ("Chapter_Distribution", chapter_percentages),
                                                         ("Difficulty", difficulty_percentages),
-                                                        ("QuestionType", question_type_percentages)])
-
-    # if LpStatus[problem.status] == "Optimal":
-    #     return successMsg(questions_list, question_vars)
-
-    # elif LpStatus[problem.status] == "Infeasible":
-    #     print("No feasible solution found. Removing most_frequent_question constraint.")
-    #     remove_frequency_constraint(problem, question_vars, most_frequent_questions)
-                
-    #     problem.solve()
-        
-    #     if LpStatus[problem.status] == "Optimal":
-    #         return successMsg(questions_list, question_vars)
-    #     else:
-    #         print("No feasible solution found. Removing Bloom constraint.")
-    #         remove_constraints(problem, "Bloom", bloom_percentages)
-    #         problem.solve()
-    #         if LpStatus[problem.status] == "Optimal":
-    #             return successMsg(questions_list, question_vars)
-    #         else:
-    #             print("No feasible solution found. Removing Difficulty constraint.")
-    #             remove_constraints(problem, "Difficulty", difficulty_percentages)
-    #             problem.solve()
-    #             if LpStatus[problem.status] == "Optimal":
-    #                 return successMsg(questions_list, question_vars)
-    #             else: 
-    #                 print("No feasible solution found. Removing Question Type constraint.")
-    #                 remove_constraints(problem, "QuestionType", question_type_percentages)
-    #                 problem.solve()
-    #                 if LpStatus[problem.status] == "Optimal":
-    #                     return successMsg(questions_list, question_vars)
-    #                 else:  
-    #                     return errorMsg()
-
-    # else:
-    #     print("No optimal solution found.")
-
-    
-        
+                                                        ], 
+                                                        chapter_weights,
+                                                        [])
+    return properties, selected_questions, flag

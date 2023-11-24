@@ -3,11 +3,9 @@ from pulp_main import questions_utils
 
 app = Flask(__name__)
 
-@app.route('/get_chapters', methods=['POST'])
+@app.route('/health', methods=['GET'])
 def get_chapters():
-    request_data = request.get_json()  
-    print(request_data)  
-    return jsonify({"message": "Test"})
+    return jsonify({"message": "Working!"})
 
 @app.route('/get_questions', methods=['POST'])
 def get_questions():

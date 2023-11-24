@@ -4,7 +4,7 @@ from constants import *
 from db_utils import *
 from bson import ObjectId
 from common import *
-from new_common import *
+from add_remove_constraints import *
 from collections import Counter
 
 def calculate_percentage(questions_list, bloom_weights, difficulty_weights, question_type_weights, topic_weights, chapter_weights):

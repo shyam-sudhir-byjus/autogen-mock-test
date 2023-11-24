@@ -3,6 +3,13 @@ from pulp import LpStatus
 from itertools import groupby
 from operator import itemgetter
 from add_remove_constraints import *
+
+def total_marks_helper(marks):
+    if marks % 10 == 0:
+        return marks // 2
+    else:
+        return (marks // 2) + 5
+    
 def solve_recursive(problem, questions_list, question_vars, constraints, chapter_weights, removed_constraints):
         if LpStatus[problem.status] == "Optimal":
             return successMsg(questions_list, question_vars, chapter_weights, removed_constraints)

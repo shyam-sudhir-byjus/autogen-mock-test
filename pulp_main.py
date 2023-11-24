@@ -1,14 +1,9 @@
 from constants import *
 from db_utils import *
 from lp_constraints import pulp_solver
-from bson import ObjectId
 from google_locations_api import get_location_name
+from common import total_marks_helper
 
-def total_marks_helper(marks):
-    if marks % 10 == 0:
-        return marks // 2
-    else:
-        return (marks // 2) + 5
 
 def questions_utils(input_data):
     chapters = input_data['chapter']

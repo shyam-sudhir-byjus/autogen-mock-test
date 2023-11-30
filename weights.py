@@ -655,6 +655,7 @@ class Weights:
     def _get_chapter_weights(self):
         if self.schools_nearby:
             chapter_frequency = Counter(self.schools_nearby['chapter'])
+            self.chapter_nearby = chapter_frequency
 
             total_chapters = len(self.schools_nearby['chapter'])
 
@@ -670,7 +671,7 @@ class Weights:
         bloom_weights = list(zip(list(self.blooms_from_nearby_school), self.bloom_avg_weight))
         difficulty_weights = list(zip(list(self.difficulty_from_school_nearby), self.diff_avg_weight))
         question_type_weights = list(zip(list(self.question_types_from_school_nearby), self.question_type_avg_weight))
-        return bloom_weights, difficulty_weights, question_type_weights, self.chapter_weightage
+        return bloom_weights, difficulty_weights, question_type_weights, self.chapter_weightage, self.blooms_from_nearby_school, self.difficulty_from_school_nearby, self.question_types_from_school_nearby, self.chapter_nearby
 
 
 if __name__ == "__main__":

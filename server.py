@@ -1,13 +1,23 @@
 from flask import Flask, request, jsonify
-from pulp_main import questions_utils
+from flask_cors import CORS
+from pulp_main import questions_utils, chapter_utils
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/health', methods=['GET'])
-def get_chapters():
+def get_check():
     return jsonify({"message": "Working!"})
 
-@app.route('/get_questions', methods=['POST'])
+
+@app.route('/get_chapters/', methods=['POST'])
+def get_chapters():
+    request_data = request.get_json()
+    chapters = chapter_utils(request_data)
+    return jsonify({"chapters": chapters})   
+
+
+@app.route('/get_questions/', methods=['POST'])
 def get_questions():
     request_data = request.get_json()
     messages, res = questions_utils(request_data)

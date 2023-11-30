@@ -5,6 +5,11 @@ from google_locations_api import get_location_name
 from common import total_marks_helper
 
 
+def chapter_utils(input_data):
+    grade, subject, curriculum = input_data['grade'], input_data['subject'], input_data['curriculum']
+    return get_chapter_list(grade, subject, curriculum)
+
+
 def questions_utils(input_data):
     chapters = input_data['chapter']
     seen = set()

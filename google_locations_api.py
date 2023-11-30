@@ -1,5 +1,6 @@
 import requests
 import json
+from get_parameters import MAPQUEST_API_KEY
 
 def get_location_name(sentence: str):
     """
@@ -12,7 +13,7 @@ def get_location_name(sentence: str):
             Top City Name from the sentence
     """
     endpoint = 'http://www.mapquestapi.com/geocoding/v1/address'
-    key = 'dSjSvjh2E3UH50JFVapQGxDhZWmPadQp' 
+    key = MAPQUEST_API_KEY
     # key = 'nGkXviL8M8Hc3Mp0trCbqJgB3jHRERpe' 
     params = {
         'key': key,
@@ -23,7 +24,6 @@ def get_location_name(sentence: str):
     response = requests.get(endpoint, params=params)
     data = json.loads(response.text)
     locations = data['results'][0]['locations']
-    # place_names = [loc["adminArea5"] for loc in locations]
     lat_lang = [loc["latLng"] for loc in locations]
     return lat_lang[0]
 

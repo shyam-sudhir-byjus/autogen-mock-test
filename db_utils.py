@@ -1,15 +1,11 @@
 from pymongo import MongoClient
-
-client = MongoClient(
-    "mongodb://questiondb:d5a8c07f243ec9e54c18729a3bf91029d9250f1k@3.110.82.242:27017/questiondb"
+from get_parameters import (
+    CONN_URI_SLP, DB_NAME_SLP
 )
 
-db = client["questiondb"]
-questions_collection = db["question_school_papers_v2"]
-dedup_collection = db["question_dedup"]
-frequency_collection = db['frequency_question_collection_v2']
-city_school_question_tags_collection = db['city_school_question_tags_v2']
-city_school_location = db['city_school_location_v2']
+client = MongoClient(CONN_URI_SLP)
+
+db = client[DB_NAME_SLP]
 
 def get_questions_list_from_db(grade, chapters, subject, curriculum):
     query = {
@@ -33,13 +29,39 @@ def get_questions_list_from_db(grade, chapters, subject, curriculum):
         "marks": 1,
     }
 
+    questions_collection = db["question_school_papers_v2"]
     questions_list = list(questions_collection.find(query, projection))
     return questions_list
 
 def get_dedup_list(ids_for_dedup):
+    dedup_collection = db["question_dedup"]
     return list(dedup_collection.find({"ID1": {"$in": ids_for_dedup}},{"_id":0,"ID1":1,"ID2":1}))
 
 def get_frequency_list(ids_for_dedup):
+    frequency_collection = db['frequency_question_collection_v2']
     most_frequent_questions = list(frequency_collection.find({"question_id": {"$in": [str(i) for i in ids_for_dedup]}},{"_id":0,"question_id":1,"frequency":1}))
     most_frequent_questions.sort(key=lambda x: x['frequency'], reverse=True)
     return most_frequent_questions
+
+
+def get_subject_details(subject):
+    maths_list = ['Maths', 'MATHS', 'MATHEMATICS', 'Math', 'math', 'maths', 'Mathematics']
+    science_list = ['SCIENCE', 'PHYSICS', 'BIOLOGY', 'CHEMISTRY', "Physics", "Biology", "Science", "Chemistry"]
+
+    if subject in maths_list:
+        return maths_list
+    else :
+        return science_list
+    
+
+def get_chapter_list(grade, subject, curriculum):
+    subject_list = get_subject_details(subject)
+    condition_for_distinct = {
+        "grade":grade,
+        "curriculum":curriculum,
+        "subject":{"$in":subject_list},
+        "filter_flag_use": 1
+    }
+    questions_collection = db["question_school_papers_v2"]
+    chapter_list = questions_collection.distinct('chapter',condition_for_distinct)
+    return chapter_list 

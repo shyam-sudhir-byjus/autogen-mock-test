@@ -1,35 +1,6 @@
-from pulp import lpSum, const
+from pulp import lpSum
 from bson import ObjectId
 from constants import bloom_mapper_dict
-
-def add_constraints(problem, weights, percentages, tolerance, constraint_type, questions_list, question_vars):
-    marks = {
-        q["_id"]: q['marks']
-        for q in questions_list
-    }
-    
-    for constraint_param, weight in weights:
-        if constraint_param in percentages:
-            constraint_type = constraint_type.lower()
-            lower_bound = weight - tolerance 
-            upper_bound = weight + tolerance
-            problem += lower_bound * lpSum(marks.values()) <= percentages[constraint_param] * lpSum(marks.values()) <= upper_bound * lpSum(marks.values()), f"{constraint_type}_Constraint_{constraint_param}"
-            
-def add_constraints_topics_chapters(problem, weights, percentages, tolerance, constraint_type, questions_list, question_vars):
-    marks = {
-        q["_id"]: q['marks']
-        for q in questions_list
-    }
-
-    for constraint_param, weight in weights.items():
-        if constraint_param in percentages:
-            lower_bound = weight - tolerance 
-            upper_bound = weight + tolerance 
-            try:
-                problem += lower_bound * lpSum(marks.values()) <= percentages[constraint_param] * lpSum(marks.values()) <= upper_bound * lpSum(marks.values()), f"{constraint_type}_Constraint_{constraint_param}"
-            
-            except const.PulpError as e:
-                continue
 
 def remove_constraints(problem, constraint_type, percentages):
     for constraint_param in percentages:

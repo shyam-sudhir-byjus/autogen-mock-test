@@ -29,7 +29,7 @@ def evaluating_student_at_runtime(exam_id, score):
 
 
 def are_all_questions_graded(exam_id, score):
-    return get_exam_score_progress(exam_id, score)
+        return get_exam_score_progress(exam_id, score)
 
 
 def get_question_marks(user_marks):
@@ -61,10 +61,10 @@ def get_subjective_grade_from_autogen(question_id):
             "status": {"isError": True, "message": "Incorrect Question Id provided"},
         }
     if (
-        hasattr(que, "question")
-        and hasattr(que, "marks")
-        and hasattr(que, "answer")
-        and hasattr(que, "user_solution")
+        "question" in que and 
+       "marks" in que  and 
+       "answer" in que and
+       "user_solution" in que  
     ):
         url = f"{SUBJECTIVE_GRADING_API}/grade_answer/"
         payload = json.dumps(

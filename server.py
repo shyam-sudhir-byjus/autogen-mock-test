@@ -64,8 +64,8 @@ def save_question_progress():
 
 @app.route("/grading_status_stream/")
 def grading_status_stream():
-    request.score = request.json.get("score")
-    request.exam_id = request.json.get("exam_id")
+    request.score = request.args.get("score")
+    request.exam_id = request.args.get("exam_id")
 
     def generate():
         while not response_formatter.are_all_questions_graded(
@@ -82,4 +82,4 @@ def grading_status_stream():
 # def logging_mock_test_exam()
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=7002)
+    app.run(debug=True, host="0.0.0.0", port=8509)

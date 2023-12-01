@@ -117,7 +117,7 @@ def get_available_student_id():
     return student[0]["exam_id"]
 
 
-def save_exam_progress_in_db(que_id, exam_id, user_answer):
+def save_exam_progress_in_db( exam_id, que_id, user_answer):
     que = db.question_school_papers_v2.find_one(
         {"ID": que_id},
         {

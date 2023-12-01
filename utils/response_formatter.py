@@ -17,14 +17,16 @@ def evaluating_student_at_runtime(exam_id, score):
             for item in user_marks:
                 get_question_marks(user_marks)
                 total_score += item["marks"]
-                indx = start_question_answer_indexing(user_marks['question_id'])
+                indx = start_question_answer_indexing(user_marks["question_id"])
                 if indx == -1:
                     print("Indexing Failed")
         time.sleep(10)
-    return 
+    return
 
-def are_all_questions_graded(exam_id,score):
-    return get_exam_score_progress(exam_id,score)
+
+def are_all_questions_graded(exam_id, score):
+    return get_exam_score_progress(exam_id, score)
+
 
 def get_question_marks(user_marks):
     msg, feedback = get_subjective_grade_from_autogen(user_marks["question_id"])
@@ -40,11 +42,12 @@ def get_question_marks(user_marks):
 
 def start_question_answer_indexing(que_id):
     que = get_question_from_exam(que_id)
-    resp = request.post(PINECONE_INDEXING_API,json = que)
-    if resp.status_code ==200:
+    resp = request.post(PINECONE_INDEXING_API, json=que)
+    if resp.status_code == 200:
         return 1
-    else: 
+    else:
         return -1
+
 
 def get_subjective_grade_from_autogen(question_id):
     que = get_question_by_id(question_id)
@@ -101,6 +104,6 @@ def get_subjective_grade_from_autogen(question_id):
         }
 
 
-def save_exam_progress_response_fromatter(que_id, exam_id, user_answer):
-    id = save_exam_progress_in_db(que_id, exam_id, user_answer)
+def save_exam_progress_response_fromatter(exam_id, que_id, user_answer):
+    id = save_exam_progress_in_db(exam_id, que_id, user_answer)
     return id

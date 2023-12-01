@@ -55,7 +55,7 @@ def save_question_progress():
     request.exam_id = request.json.get("exam_id")
     request.question_id = request.json.get("question_id")
     request.user_answer = request.json.get("user_answer")
-    response_formatter.save_exam_progress_response_fromatter()
+    response_formatter.save_exam_progress_response_fromatter(request.exam_id ,request.question_id, request.user_answer )
     return {
         "response": "question_response_save_in_db",
         "status": {"isError": False, "message": "API call sucessful"},

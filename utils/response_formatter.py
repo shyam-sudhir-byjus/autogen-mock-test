@@ -11,6 +11,7 @@ def evaluating_student_at_runtime(exam_id, score):
     # after every delay of 50 seconds call api and get the result
     # incase nothing is available then again wait for 50 seconds
     total_score = 0
+    count = 0
     while score < total_score:
         user_marks = get_exam_progress_in_db(exam_id)
         if user_marks != []:
@@ -20,7 +21,10 @@ def evaluating_student_at_runtime(exam_id, score):
                 indx = start_question_answer_indexing(user_marks["question_id"])
                 if indx == -1:
                     print("Indexing Failed")
-        time.sleep(10)
+        time.sleep(60)
+        count+=1
+        if count ==30:
+            break
     return
 
 

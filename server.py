@@ -62,24 +62,28 @@ def save_question_progress():
     }
 
 
-@app.route("/grading_status_stream/")
-def grading_status_stream():
-    request.score = request.args.get("score")
-    request.exam_id = request.args.get("exam_id")
 
-    def generate():
+@app.route("/grading_status_stream/", methods=['GET'])
+def grading_status_stream():
+    print('entering')
+    score = int(request.args.get("score"))
+    exam_id = int(request.args.get("exam_id"))
+
+    def generate(exam_id, score):
         while not response_formatter.are_all_questions_graded(
-            request.exam_id, request.score
+            exam_id, score
         ):
             yield "data: {}\n\n".format("waiting")
-            time.sleep(5)  # Check every 5 seconds
+            time.sleep(50)  # Check every 5 seconds
         yield "data: {}\n\n".format("done")
 
-    return Response(generate(), mimetype="text/event-stream")
+    val  =Response(generate(exam_id, score), mimetype="text/event-stream")
+    print(val)
+    return val
 
 
 # @app.after_request
 # def logging_mock_test_exam()
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=8509)
+    app.run(debug=True, host="0.0.0.0", port=5004)

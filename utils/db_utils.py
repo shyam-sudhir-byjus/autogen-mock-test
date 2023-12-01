@@ -105,7 +105,7 @@ def get_last_exam_id():
     que = list(db.student_exam_questions.find({}).sort("_id", -1).limit(1))
     if que == []:
         return 1
-    return int(que["exam_id"]) + 1
+    return int(que[0]["exam_id"]) + 1
 
 
 def get_available_student_id():

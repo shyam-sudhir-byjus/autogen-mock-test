@@ -94,10 +94,13 @@ def get_chapter_list(grade, subject, curriculum):
     return chapter_list
 
 
-def get_question_by_id(id):
+def get_question_by_id(que_id,exam_id):
     que = db.question_school_papers_v2.find_one(
-        {"ID": id}, {"_id": 0, "question": 1, "answer": 1, "marks": 1}
+        {"ID": que_id}, {"_id": 0, "question": 1, "answer": 1, "marks": 1}
     )
+    sol = db.student_exam_questions.find_one({'question_id':que_id,'exam_id':exam_id},{'_id':0,'user_solution':1 })
+    que['user_solution']  = sol['user_solution']
+    print(que)
     return que
 
 
@@ -118,6 +121,7 @@ def get_available_student_id():
 
 
 def save_exam_progress_in_db( exam_id, que_id, user_answer):
+    print('saving indb')
     que = db.question_school_papers_v2.find_one(
         {"ID": que_id},
         {
@@ -140,6 +144,7 @@ def save_exam_progress_in_db( exam_id, que_id, user_answer):
         **que
     }
     inserted_id = db.student_exam_questions.insert_one(doc)
+    print(inserted_id)
     return inserted_id
 
 
@@ -163,7 +168,7 @@ def save_feeback_msg_in_db(msg, feedback, question_id, exam_id):
 def get_question_from_exam(question_id, exam_id):
     # ['exam_id','question','question_id','marks','user_solution','baseline_solution','marks_given',
     #              'feedback_provided','subject','subtopic','grade','chapter_name']
-    exam_que = db.student_exam_question.find_one(
+    exam_que = db.student_exam_questions.find_one(
         {"exam_id": exam_id, "question_id": question_id},
         {
             "question": 1,
@@ -177,9 +182,10 @@ def get_question_from_exam(question_id, exam_id):
             "subtopic": 1,
             "grade": 1,
             "chapter_name": 1,
+            "_id":0
         },
     )
-    return exam_que
+    return [exam_que]
 
 
 def get_exam_score_progress(exam_id,score):

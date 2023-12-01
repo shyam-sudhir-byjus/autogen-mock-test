@@ -1,9 +1,10 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from pulp_main import questions_utils, chapter_utils
 from utils import response_formatter
 from threading import Thread
 from utils.db_utils import get_last_exam_id
+import time
 
 app = Flask(__name__)
 CORS(app)
@@ -12,8 +13,14 @@ CORS(app)
 @app.route("/start_grading_task/", methods=["POST"])
 def get_student_grading_info():
     exam_id = get_last_exam_id()
-    score = request.json.get('score',-1)
-    thread = Thread(target=response_formatter.evaluating_student_at_runtime,args=(exam_id,score,))
+    score = request.json.get("score", -1)
+    thread = Thread(
+        target=response_formatter.evaluating_student_at_runtime,
+        args=(
+            exam_id,
+            score,
+        ),
+    )
     thread.start()
     return {
         "response": {"exam_id": exam_id},
@@ -43,19 +50,36 @@ def get_questions():
     return jsonify({"questions": res, "properties": messages})
 
 
-@app.route('/save_question_progress/', methods=['POST'])
+@app.route("/save_question_progress/", methods=["POST"])
 def save_question_progress():
-    request.exam_id = request.json.get('exam_id')
-    request.question_id = request.json.get('question_id')
-    request.user_answer = request.json.get('user_answer')
+    request.exam_id = request.json.get("exam_id")
+    request.question_id = request.json.get("question_id")
+    request.user_answer = request.json.get("user_answer")
     response_formatter.save_exam_progress_response_fromatter()
     return {
-        "response":"question_response_save_in_db",
-        "status":{
-            "isError": False, 
-            "message":"API call sucessful"
-        }
+        "response": "question_response_save_in_db",
+        "status": {"isError": False, "message": "API call sucessful"},
     }
+
+
+@app.route("/grading_status_stream/")
+def grading_status_stream():
+    request.score = request.json.get("score")
+    request.exam_id = request.json.get("exam_id")
+
+    def generate():
+        while not response_formatter.are_all_questions_graded(
+            request.exam_id, request.score
+        ):
+            yield "data: {}\n\n".format("waiting")
+            time.sleep(5)  # Check every 5 seconds
+        yield "data: {}\n\n".format("done")
+
+    return Response(generate(), mimetype="text/event-stream")
+
+
+# @app.after_request
+# def logging_mock_test_exam()
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=7002)

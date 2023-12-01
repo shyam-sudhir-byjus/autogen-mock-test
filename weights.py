@@ -260,8 +260,8 @@ class Weights:
             qna_bloom_weights= {}
             update_bloom_dict = {
                 "Knowledge" : qna_dict_bloom.get('Memory',0),
-                "Comprehension" : qna_dict_bloom.get('Understand',0),
-                "Application" : qna_dict_bloom.get('Apply',0),
+                "Comprehension" : qna_dict_bloom.get('Understand',0) + qna_dict_bloom.get('Conceptual',0),
+                "Application" : qna_dict_bloom.get('Apply',0) + qna_dict_bloom.get('Application Based',0),
                 "Analysing" : qna_dict_bloom.get('Analysis',0),
                 "Evaluation" : qna_dict_bloom.get('Evaluate',0),
                 "Creation" : qna_dict_bloom.get('Create',0)
@@ -277,12 +277,12 @@ class Weights:
 
             qna_ques_type_weights = {}
             update_ques_type_dict = {
-                "MC" : qna_dict_ques_type.get('MC',0),
-                "FITB" : qna_dict_ques_type.get('FITB',0),
+                "MC" : qna_dict_ques_type.get('MC',0) + qna_dict_ques_type.get('MultipleChoiceQuestion',0),
+                "FITB" : qna_dict_ques_type.get('FITB',0) + qna_dict_ques_type.get('FillInTheBlankQuestion',0),
                 "VSA" : qna_dict_ques_type.get('VSA',0),
                 "SA" : qna_dict_ques_type.get('SA',0),
-                "LA" : qna_dict_ques_type.get('LA',0),
-                "TF" : qna_dict_ques_type.get('TF',0),
+                "LA" : qna_dict_ques_type.get('LA',0) + qna_dict_ques_type.get('EssayQuestion',0),
+                "TF" : qna_dict_ques_type.get('TF',0) + qna_dict_ques_type.get('TrueOrFalseQuestion',0),
                 "MTC" : qna_dict_ques_type.get('MTC',0),
                 "GM" : qna_dict_ques_type.get('GM',0)
             }
@@ -669,9 +669,13 @@ class Weights:
         self._get_difficulty_weights_from_db()
         self._get_question_type_weights_from_db()
         bloom_weights = list(zip(list(self.blooms_from_nearby_school), self.bloom_avg_weight))
+        if "school_id" in self.schools_nearby:
+            school_count = len(self.schools_nearby['school_id'])
+        else:
+            school_count = 0
         difficulty_weights = list(zip(list(self.difficulty_from_school_nearby), self.diff_avg_weight))
         question_type_weights = list(zip(list(self.question_types_from_school_nearby), self.question_type_avg_weight))
-        return bloom_weights, difficulty_weights, question_type_weights, self.chapter_weightage, self.blooms_from_nearby_school, self.difficulty_from_school_nearby, self.question_types_from_school_nearby, self.chapter_nearby
+        return bloom_weights, difficulty_weights, question_type_weights, self.chapter_weightage, self.blooms_from_nearby_school, self.difficulty_from_school_nearby, self.question_types_from_school_nearby, self.chapter_nearby, school_count
 
 
 if __name__ == "__main__":

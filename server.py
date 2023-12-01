@@ -45,7 +45,6 @@ def get_questions():
 
 @app.route('/save_question_progress/', methods=['POST'])
 def save_question_progress():
-    request.student_id = request.json.get('student_id')
     request.exam_id = request.json.get('exam_id')
     request.question_id = request.json.get('question_id')
     request.user_answer = request.json.get('user_answer')

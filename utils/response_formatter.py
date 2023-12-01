@@ -3,22 +3,21 @@ from get_parameters import SUBJECTIVE_GRADING_API
 import requests
 import json
 from utils.db_utils import *
+import time
 
 
-def evaluating_student_at_runtime(exam_id,score):
+def evaluating_student_at_runtime(exam_id, score):
     # get the exam Id
     # after every delay of 50 seconds call api and get the result
     # incase nothing is available then again wait for 50 seconds
     total_score = 0
-    while score<total_score:
+    while score < total_score:
         user_marks = get_exam_progress_in_db(exam_id)
-        if user_marks!=[]:
+        if user_marks != []:
             for item in user_marks:
                 get_question_marks(user_marks)
-                total_score+= item['marks'] 
-
-
-        
+                total_score += item["marks"]
+        time.sleep(10)
 
 
 def get_question_marks(user_marks):
@@ -27,7 +26,9 @@ def get_question_marks(user_marks):
         "user_marks": feedback["Marks"],
         "feedback_provided": feedback["Summary"],
     }
-    save_feeback_msg_in_db(msg, autogen_feedback,user_marks["question_id"], user_marks['exam_id'])
+    save_feeback_msg_in_db(
+        msg, autogen_feedback, user_marks["question_id"], user_marks["exam_id"]
+    )
     return
 
 
@@ -65,7 +66,7 @@ def get_subjective_grade_from_autogen(question_id):
                 "I hope this feedback helps you to improve your performance in future assessments."
             )
             feedback = msg[idx1 + len(sub1) + 1 : idx2]
-            feedback =  json.loads(feedback[0])
+            feedback = json.loads(feedback[0])
             return msg, feedback
 
         else:
@@ -86,6 +87,6 @@ def get_subjective_grade_from_autogen(question_id):
         }
 
 
-def save_exam_progress_response_fromatter(que_id, exam_id, student_id, user_answer):
-    id = save_exam_progress_in_db(que_id, exam_id, student_id, user_answer)
+def save_exam_progress_response_fromatter(que_id, exam_id, user_answer):
+    id = save_exam_progress_in_db(que_id, exam_id, user_answer)
     return id

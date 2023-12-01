@@ -1,5 +1,5 @@
 .venv
 .pycache
 *.pyc
-# .env
+.env
 

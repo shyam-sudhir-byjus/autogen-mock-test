@@ -105,7 +105,7 @@ def get_last_exam_id():
     que = list(db.student_exam_questions.find({}).sort("_id", -1).limit(1))
     if que == []:
         return 1
-    return que["exam_id"] + 1
+    return int(que["exam_id"]) + 1
 
 
 def get_available_student_id():
@@ -132,8 +132,8 @@ def save_exam_progress_in_db( exam_id, que_id, user_answer):
         },
     )
     doc = {
-        "question_id": que_id,
-        "exam_id": exam_id,
+        "question_id": int(que_id),
+        "exam_id": int(exam_id),
         "user_solution": user_answer,
         "is_pinecone_indexed": 0,
         "solution_generated": 0,

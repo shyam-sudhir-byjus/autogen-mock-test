@@ -117,11 +117,10 @@ def get_available_student_id():
     return student[0]["exam_id"]
 
 
-def save_exam_progress_in_db(que_id, student_id, exam_id, user_answer):
+def save_exam_progress_in_db(que_id, exam_id, user_answer):
     que  = db.question_school_papers_v2.find_one({'ID':que_id},{'_id':0,'marks':1, 'concept':1, 'subject':1,'grade':1,'chapter':1, "subtopic":"$topic"})
     doc = {
         "question_id": que_id,
-        "student_id": student_id,
         "exam_id": exam_id,
         "user_solution": user_answer,
         "is_pinecone_indexed": 0,

@@ -1,5 +1,5 @@
 from constants import *
-from db_utils import *
+from utils.db_utils import *
 from lp_constraints import pulp_solver
 from google_locations_api import get_location_name
 from common import total_marks_helper

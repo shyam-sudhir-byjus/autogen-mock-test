@@ -136,7 +136,8 @@ def save_exam_progress_in_db( exam_id, que_id, user_answer):
         "exam_id": exam_id,
         "user_solution": user_answer,
         "is_pinecone_indexed": 0,
-        "solution_generated": 0**que,
+        "solution_generated": 0,
+        **que
     }
     inserted_id = db.student_exam_questions.insert_one(doc)
     return inserted_id

@@ -12,7 +12,7 @@ def evaluating_student_at_runtime(exam_id, score):
     # incase nothing is available then again wait for 50 seconds
     total_score = 0
     count = 0
-    while score < total_score:
+    while  total_score<=score :
         user_marks = get_exam_progress_in_db(exam_id)
         if user_marks != []:
             for item in user_marks:

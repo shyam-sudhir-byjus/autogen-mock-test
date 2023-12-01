@@ -1,7 +1,7 @@
 from pulp import LpProblem, LpVariable, lpSum, LpMinimize, LpStatus, LpBinary, const
 from weights import Weights
 from constants import *
-from utils.db_utils import *
+from db_utils import *
 from bson import ObjectId
 from common import *
 from add_remove_constraints import *
@@ -75,13 +75,14 @@ def pulp_solver(questions_list, similar_questions_list, input_data, most_frequen
             problem += const, name
     
     weights_instance = Weights(db['city_school_question_tags_v2'], db['city_school_location_v2'], input_data)
-    bloom_weights, difficulty_weights, question_type_weights, chapter_weights_school, bloom_nearby, diff_nearby, q_type_nearby, chapter_nearby = weights_instance._get_weights()
+    bloom_weights, difficulty_weights, question_type_weights, chapter_weights_school, bloom_nearby, diff_nearby, q_type_nearby, chapter_nearby, school_count = weights_instance._get_weights()
 
     nearby_school_data = {
         "bloom": bloom_nearby,
         "difficulty": diff_nearby,
         "question_type": q_type_nearby,
-        "chapter": chapter_nearby
+        "chapter": chapter_nearby,
+        "school_count": school_count
     }
 
     if chapter_weights_school != []:
@@ -110,7 +111,7 @@ def pulp_solver(questions_list, similar_questions_list, input_data, most_frequen
     problem.solve()
 
     if LpStatus[problem.status] == "Optimal":
-        return successMsg(questions_list, question_vars, chapter_weights, nearby_school_data, [])
+        return successMsg(questions_list, question_vars, chapter_weights, nearby_school_data, most_frequent_questions, [])
 
     properties, selected_questions, flag = solve_recursive(problem, questions_list, question_vars, [
                                                         ("Average_Difficulty_Lower_Constraint", []),
@@ -122,6 +123,6 @@ def pulp_solver(questions_list, similar_questions_list, input_data, most_frequen
                                                         # ("Chapter_Distribution", chapter_percentages),
                                                         ("Difficulty", difficulty_percentages),
                                                         ], 
-                                                        chapter_weights, nearby_school_data,
+                                                        chapter_weights, nearby_school_data, most_frequent_questions,
                                                         [])
     return properties, selected_questions, flag

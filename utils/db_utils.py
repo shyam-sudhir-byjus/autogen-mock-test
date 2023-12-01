@@ -179,3 +179,15 @@ def get_question_from_exam(question_id, exam_id):
         },
     )
     return exam_que
+
+
+def get_exam_score_progress(exam_id,score):
+    exams = list(db.student_exam_question.find({"exam_id":exam_id}))
+    if exams ==[]:
+        return False 
+    score_cal = 0
+    for item in exams : 
+        score_cal+= item['marks']
+    if score==score_cal:
+        return True 
+    return False

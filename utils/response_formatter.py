@@ -21,7 +21,10 @@ def evaluating_student_at_runtime(exam_id, score):
                 if indx == -1:
                     print("Indexing Failed")
         time.sleep(10)
+    return 
 
+def are_all_questions_graded(exam_id,score):
+    return get_exam_score_progress(exam_id,score)
 
 def get_question_marks(user_marks):
     msg, feedback = get_subjective_grade_from_autogen(user_marks["question_id"])

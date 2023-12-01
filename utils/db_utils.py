@@ -118,14 +118,25 @@ def get_available_student_id():
 
 
 def save_exam_progress_in_db(que_id, exam_id, user_answer):
-    que  = db.question_school_papers_v2.find_one({'ID':que_id},{'_id':0,'marks':1, 'concept':1, 'subject':1,'grade':1,'chapter':1, "subtopic":"$topic"})
+    que = db.question_school_papers_v2.find_one(
+        {"ID": que_id},
+        {
+            "_id": 0,
+            "marks": 1,
+            "baseline_solution": "$answer",
+            "concept": 1,
+            "subject": 1,
+            "grade": 1,
+            "chapter": 1,
+            "subtopic": "$topic",
+        },
+    )
     doc = {
         "question_id": que_id,
         "exam_id": exam_id,
         "user_solution": user_answer,
         "is_pinecone_indexed": 0,
-        "solution_generated":0
-        **que
+        "solution_generated": 0**que,
     }
     inserted_id = db.student_exam_questions.insert_one(doc)
     return inserted_id
@@ -146,3 +157,25 @@ def save_feeback_msg_in_db(msg, feedback, question_id, exam_id):
         {"$set": {"chat_msg": msg, **feedback}},
     )
     return exam_response_id
+
+
+def get_question_from_exam(question_id, exam_id):
+    # ['exam_id','question','question_id','marks','user_solution','baseline_solution','marks_given',
+    #              'feedback_provided','subject','subtopic','grade','chapter_name']
+    exam_que = db.student_exam_question.find_one(
+        {"exam_id": exam_id, "question_id": question_id},
+        {
+            "question": 1,
+            "question_id": 1,
+            "marks": 1,
+            "user_solution": 1,
+            "baseline_solution": 1,
+            "user_marks": 1,
+            "feedback_provided": 1,
+            "subject": 1,
+            "subtopic": 1,
+            "grade": 1,
+            "chapter_name": 1,
+        },
+    )
+    return exam_que

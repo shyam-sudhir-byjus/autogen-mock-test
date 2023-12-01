@@ -57,5 +57,8 @@ def save_question_progress():
         }
     }
 
+# @app.after_request
+# def logging_mock_test_exam()
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=7002)

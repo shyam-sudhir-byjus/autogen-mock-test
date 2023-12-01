@@ -1,5 +1,5 @@
 from flask import request
-from get_parameters import SUBJECTIVE_GRADING_API
+from get_parameters import SUBJECTIVE_GRADING_API, PINECONE_INDEXING_API
 import requests
 import json
 from utils.db_utils import *
@@ -17,6 +17,9 @@ def evaluating_student_at_runtime(exam_id, score):
             for item in user_marks:
                 get_question_marks(user_marks)
                 total_score += item["marks"]
+                indx = start_question_answer_indexing(user_marks['question_id'])
+                if indx == -1:
+                    print("Indexing Failed")
         time.sleep(10)
 
 
@@ -31,6 +34,14 @@ def get_question_marks(user_marks):
     )
     return
 
+
+def start_question_answer_indexing(que_id):
+    que = get_question_from_exam(que_id)
+    resp = request.post(PINECONE_INDEXING_API,json = que)
+    if resp.status_code ==200:
+        return 1
+    else: 
+        return -1
 
 def get_subjective_grade_from_autogen(question_id):
     que = get_question_by_id(question_id)

@@ -22,7 +22,7 @@ def evaluating_student_at_runtime(exam_id, score):
                 indx = start_question_answer_indexing(item["question_id"], item['exam_id'])
                 if indx == -1:
                     print("Indexing Failed")
-        time.sleep(60)
+        time.sleep(15)
         count+=1
         if count ==30:
             break

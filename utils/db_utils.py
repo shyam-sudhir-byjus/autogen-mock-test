@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from get_parameters import CONN_URI_SLP, DB_NAME_SLP
+from constants import keywords_to_remove
 
 client = MongoClient(CONN_URI_SLP)
 
@@ -30,7 +31,8 @@ def get_questions_list_from_db(grade, chapters, subject, curriculum):
 
     questions_collection = db["question_school_papers_v2"]
     questions_list = list(questions_collection.find(query, projection))
-    return questions_list
+    filtered_questions = [question for question in questions_list if not any(keyword in question['question'].lower() for keyword in keywords_to_remove)]
+    return filtered_questions
 
 
 def get_dedup_list(ids_for_dedup):

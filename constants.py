@@ -23,3 +23,4 @@ constraint_dict = {
     "Chapter_Distribution": "chapter",
     "Topic_Distribution": "topic"
 }
+keywords_to_remove = ['fig', 'diagram', 'shown', 'draw', 'construct', 'refer', 'image', 'img']

@@ -203,3 +203,7 @@ def get_exam_score_progress(exam_id,score):
     if score==score_cal:
         return True 
     return False
+
+def get_user_marks_from_exam(exam_id):
+    exam  = list(db.student_exam_questions.find({'exam_id':exam_id},{'_id':0}))
+    return exam

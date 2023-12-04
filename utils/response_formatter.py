@@ -22,7 +22,7 @@ def evaluating_student_at_runtime(exam_id, score):
                 indx = start_question_answer_indexing(item["question_id"], item['exam_id'])
                 if indx == -1:
                     print("Indexing Failed")
-        time.sleep(60)
+        time.sleep(15)
         count+=1
         if count ==30:
             break
@@ -121,3 +121,7 @@ def get_subjective_grade_from_autogen(question_id,exam_id):
 def save_exam_progress_response_fromatter(exam_id, que_id, user_answer):
     id = save_exam_progress_in_db(exam_id, que_id, user_answer)
     return id
+
+
+def get_question_marks_response_formatter(exam_id):
+    return get_user_marks_from_exam(exam_id)

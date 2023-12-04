@@ -48,6 +48,7 @@ def get_question_marks(user_marks):
 
 
 def start_question_answer_indexing(que_id,exam_id):
+    print('Entering the indexing function')
     que = get_question_from_exam(que_id,exam_id)
     url = PINECONE_INDEXING_API+"/save_que_marks_index/"
     headers = {
@@ -56,7 +57,9 @@ def start_question_answer_indexing(que_id,exam_id):
     que = json.dumps({"mock_response":que})
     resp = requests.post(url, headers= headers,data=que)
     if resp.status_code == 200:
-        print('Indexing done')
+        resp = resp.json()
+        if resp['status']['isError']:
+            print(resp['status'])
         return 1
     else:
         return -1

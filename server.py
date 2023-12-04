@@ -83,8 +83,7 @@ def grading_status_stream():
 
 @app.route("/show_user_marks/", methods=['GET'])
 def show_user_marks():
-
-    exam_id = int(request.json.args('exam_id'))
+    exam_id = int(request.args.get('exam_id'))
     val = response_formatter.get_question_marks_response_formatter(exam_id)
     return {
         "response": val ,

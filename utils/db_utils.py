@@ -133,6 +133,8 @@ def save_exam_progress_in_db( exam_id, que_id, user_answer):
             "grade": 1,
             "chapter": 1,
             "subtopic": "$topic",
+            'question':1,
+            "chapter":1,
         },
     )
     doc = {
@@ -182,7 +184,7 @@ def get_question_from_exam(question_id, exam_id):
             "subject": 1,
             "subtopic": 1,
             "grade": 1,
-            "chapter_name": 1,
+            "chapter_name": "$chapter",
             "concept":1,
             "_id":0
         },

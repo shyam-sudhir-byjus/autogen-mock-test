@@ -15,6 +15,7 @@ def get_questions_list_from_db(grade, chapters, subject, curriculum):
         "curriculum": curriculum,
         "filter_flag_use": 1,
         "topic": {"$ne": ""},
+        "is_hindi_flag": 0
     }
 
     projection = {

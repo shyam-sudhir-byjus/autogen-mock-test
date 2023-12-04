@@ -92,17 +92,8 @@ def get_subjective_grade_from_autogen(question_id,exam_id):
         response = requests.post(url, headers=headers, data=payload)
         print(f'this is response status {response.status_code}')
         if response.status_code == 200:
-            msg = response.json()["response"]
-            feedback_msg = msg.split('feedback (to chat_manager)')[-1]
-            feedback_msg = feedback_msg.replace("\n","")
-            feedback_msg = feedback_msg.split('--------------------------------------------------------------------------------')[0]
-            start = feedback_msg.find('{')
-            end = feedback_msg.rfind('}')
-
-            if start != -1 and end != -1 and end > start:
-                feedback=  feedback_msg[start:end+1]
-            feedback = json.loads(feedback)
-            return msg, feedback
+            response = response.json
+            return response['msg'], response['feedback']
 
         else:
             return {

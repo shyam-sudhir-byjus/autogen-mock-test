@@ -152,7 +152,7 @@ def get_exam_progress_in_db(exam_id):
     exam_response = list(
         db.student_exam_questions.find(
             {"exam_id": exam_id, "solution_generated": 0}
-        ).sort({"_id": 1})
+        ).sort("_id", 1)
     )
     return exam_response
 
@@ -171,6 +171,7 @@ def get_question_from_exam(question_id, exam_id):
     exam_que = db.student_exam_questions.find_one(
         {"exam_id": exam_id, "question_id": question_id},
         {
+            "exam_id":1,
             "question": 1,
             "question_id": 1,
             "marks": 1,
@@ -182,6 +183,7 @@ def get_question_from_exam(question_id, exam_id):
             "subtopic": 1,
             "grade": 1,
             "chapter_name": 1,
+            "concept":1,
             "_id":0
         },
     )

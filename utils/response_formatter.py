@@ -92,8 +92,8 @@ def get_subjective_grade_from_autogen(question_id,exam_id):
         response = requests.post(url, headers=headers, data=payload)
         print(f'this is response status {response.status_code}')
         if response.status_code == 200:
-            response = response.json
-            return response['msg'], response['feedback']
+            response = response.json()
+            return response['response']['msg'], response['response']['feedback']
 
         else:
             return {

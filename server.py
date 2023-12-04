@@ -81,9 +81,20 @@ def grading_status_stream():
     print(val)
     return val
 
+@app.route("/show_user_marks/", methods=['GET'])
+def show_user_marks():
 
+    exam_id = int(request.json.args('exam_id'))
+    val = response_formatter.get_question_marks_response_formatter(exam_id)
+    return {
+        "response": val ,
+        "status":{
+            "isError":False,
+            "message":"Api call successfully"
+        }
+    }
 # @app.after_request
 # def logging_mock_test_exam()
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5004)
+        app.run(debug=True, host="0.0.0.0", port=5004)

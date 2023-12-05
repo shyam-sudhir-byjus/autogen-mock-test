@@ -62,7 +62,6 @@ def save_question_progress():
     }
 
 
-
 @app.route("/grading_status_stream/", methods=['GET'])
 def grading_status_stream():
     print('entering')
@@ -92,8 +91,18 @@ def show_user_marks():
             "message":"Api call successfully"
         }
     }
-# @app.after_request
-# def logging_mock_test_exam()
+
+@app.route('/get_my_image_solution/',methods=["POST"])
+def get_my_image_solution():
+    request.base64_image = request.json.get('base64_image')
+    content = response_formatter.perform_ocr(request.base64_image)
+    return {
+        "response":{"solution":content},
+        "status":{
+            "isError": False,
+            "message": "Api call successful"
+        }
+    }
 
 if __name__ == "__main__":
         app.run(debug=True, host="0.0.0.0", port=5004)

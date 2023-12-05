@@ -4,6 +4,7 @@ from itertools import groupby
 from operator import itemgetter
 from add_remove_constraints import *
 import ast
+import re
 
 def total_marks_helper(marks):
     if marks % 10 == 0:
@@ -95,6 +96,8 @@ def format_options(options):
     if options == "" or options == {}:
         return []
     try:
-        return ast.literal_eval(options)
+        options_list = ast.literal_eval(options)
+        cleaned_options_list = [re.sub(r'^(\([a-zA-Z]\)|^[a-zA-Z0-9]+\.)|^[a-zA-Z0-9]+\.', '', option) for option in options_list]
+        return cleaned_options_list
     except:
         return options

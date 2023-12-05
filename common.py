@@ -3,6 +3,7 @@ from pulp import LpStatus
 from itertools import groupby
 from operator import itemgetter
 from add_remove_constraints import *
+import ast
 
 def total_marks_helper(marks):
     if marks % 10 == 0:
@@ -45,6 +46,7 @@ def successMsg(questions_list, question_vars, chapter_weights, nearby_data, most
 
     for select_ques in selected_questions:
         select_ques["frequency"] = get_frequency(str(select_ques["_id"]), most_frequent_questions)
+        select_ques["options"] = format_options(select_ques["options"])
 
     grouped_by_bloom = groupby(sorted(selected_questions, key=itemgetter('bloom')), key=itemgetter('bloom'))
     grouped_by_difficulty = groupby(sorted(selected_questions, key=itemgetter('difficulty')), key=itemgetter('difficulty'))
@@ -88,3 +90,11 @@ def errorMsg():
 def get_frequency(question_id, data):
     frequency_mapping = {item['question_id']: item['frequency'] for item in data}
     return frequency_mapping.get(question_id, 0)
+
+def format_options(options):
+    if options == "" or options == {}:
+        return []
+    try:
+        return ast.literal_eval(options)
+    except:
+        return options

@@ -97,8 +97,12 @@ def get_my_image_solution():
     request.base64_image = request.json.get('base64_image')
     content = response_formatter.perform_ocr(request.base64_image)
     content_2 = response_formatter.getGoogleOCR(request.base64_image.split(',')[1])
+    final_response = response_formatter.chat_gpt_decision(content, content_2)
+    # final_response = final_response.replace('{','')
+    # final_response = final_response.replace('}','')
+
     return {
-        "response":{"mathpix":content,"google_vision":content_2},
+        "response":{"mathpix":content,"google_vision":content_2,'openai_identified':final_response['Answer']},
         "status":{
             "isError": False,
             "message": "Api call successful"

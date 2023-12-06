@@ -1,5 +1,5 @@
 from flask import request
-from get_parameters import SUBJECTIVE_GRADING_API, PINECONE_INDEXING_API, OPENAI_KEY
+from get_parameters import SUBJECTIVE_GRADING_API, PINECONE_INDEXING_API, OPENAI_KEY, MATHPIX_APP_KEY, MATHPIX_APP_ID
 import requests
 import json
 from utils.db_utils import *
@@ -128,39 +128,61 @@ def get_question_marks_response_formatter(exam_id):
 
 
 def perform_ocr(base64_encoded_image):
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {OPENAI_KEY}",
-    }
-
-    payload = {
-        "model": "gpt-4-vision-preview",
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": "Step 1: Conduct OCR of provided image. Ensure that you do not miss any line, word, letter \
-                    even if you've low confidence. \
-                    Step 2: Provide the OCR output based on step 1. Strictly ensure no other text is there in output \
-                    than the required OCR output in text format.",
-                    },
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
-                    },
-                ],
-            }
-        ],
-        "max_tokens": 300,
-    }
 
     response = requests.post(
-        "https://api.openai.com/v1/chat/completions", headers=headers, json=payload
-    )
-    data = response.json()
-    # print(data)
-    content = data["choices"][0]["message"]["content"]
+        "https://api.mathpix.com/v3/text",
+        json={
+            "src": base64_encoded_image,
 
-    return content
+            "rm_fonts": True,
+            "math_display_delimiters": ["\\(", "\\)"],
+            "formats": ["text", "data", "latex_simplified"],
+            "data_options": {"include_asciimath": True},
+        },
+        headers={
+            "app_id": MATHPIX_APP_ID,
+            "app_key": MATHPIX_APP_KEY,
+            "Content-type": "application/json",
+        },
+        timeout=5,
+    )
+
+    mathpix_response = response.json()
+    return {"text": mathpix_response["text"], "isError": False}
+
+## Uncommet below for OCR .
+    # headers = {
+    #     "Content-Type": "application/json",
+    #     "Authorization": f"Bearer {OPENAI_KEY}",
+    # }
+
+    # payload = {
+    #     "model": "gpt-4-vision-preview",
+    #     "messages": [
+    #         {
+    #             "role": "user",
+    #             "content": [
+    #                 {
+    #                     "type": "text",
+    #                     "text": "Step 1: Conduct OCR of provided image. Ensure that you do not miss any line, word, letter \
+    #                 even if you've low confidence. \
+    #                 Step 2: Provide the OCR output based on step 1. Strictly ensure no other text is there in output \
+    #                 than the required OCR output in text format.",
+    #                 },
+    #                 {
+    #                     "type": "image_url",
+    #                     "image_url": {"url": f"data:image/jpeg;base64,{base64_encoded_image}"},
+    #                 },
+    #             ],
+    #         }
+    #     ],
+    #     "max_tokens": 300,
+    # }
+
+    # response = requests.post(
+    #     "https://api.openai.com/v1/chat/completions", headers=headers, json=payload
+    # )
+    # data = response.json()
+    # content = data["choices"][0]["message"]["content"]
+
+    # return content

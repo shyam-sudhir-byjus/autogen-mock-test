@@ -8,6 +8,9 @@ db = client[DB_NAME_SLP]
 
 
 def get_questions_list_from_db(grade, chapters, subject, curriculum):
+    '''
+        Get list of questions with metadata for the specified parameters
+    '''
     query = {
         "chapter": {"$in": chapters},
         "grade": grade,
@@ -37,6 +40,9 @@ def get_questions_list_from_db(grade, chapters, subject, curriculum):
 
 
 def get_dedup_list(ids_for_dedup):
+    '''
+        Returns list of duplicates for similarity constraint
+    '''
     dedup_collection = db["question_dedup"]
     return list(
         dedup_collection.find(
@@ -46,6 +52,9 @@ def get_dedup_list(ids_for_dedup):
 
 
 def get_frequency_list(ids_for_dedup):
+    '''
+        Returns frequency for given question ids
+    '''
     frequency_collection = db["frequency_question_collection_v2"]
     most_frequent_questions = list(
         frequency_collection.find(
@@ -85,6 +94,9 @@ def get_subject_details(subject):
 
 
 def get_chapter_list(grade, subject, curriculum):
+    '''
+        Returns list of chapters for given grade/subject and curriculum
+    '''
     subject_list = get_subject_details(subject)
     condition_for_distinct = {
         "grade": grade,

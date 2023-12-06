@@ -49,6 +49,10 @@ def remove_topic_distribution_constraint(problem, percentages, constraint_type):
             print(f"Constraint '{constraint_name}' not found in the model.")
 
 def get_chapter_topic_weights(questions_list):
+    '''
+        Returns Weightage of Chapter/Topic from the given questions list
+        for the input parameters
+    '''
     chapter_counts, topics_count = {}, {}
     for q in questions_list:
         chapter, topic = q['chapter'], q['topic']

@@ -96,8 +96,9 @@ def show_user_marks():
 def get_my_image_solution():
     request.base64_image = request.json.get('base64_image')
     content = response_formatter.perform_ocr(request.base64_image)
+    content_2 = response_formatter.getGoogleOCR(request.base64_image.split(',')[1])
     return {
-        "response":{"solution":content},
+        "response":{"mathpix":content,"google_vision":content_2},
         "status":{
             "isError": False,
             "message": "Api call successful"

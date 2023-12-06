@@ -10,7 +10,7 @@ PINECONE_INDEXING_API=os.environ.get('PINECONE_INDEXING_API')
 OPENAI_KEY=os.environ.get('OPENAI_KEY')
 MATHPIX_APP_ID=os.environ.get('MATHPIX_APP_ID')
 MATHPIX_APP_KEY=os.environ.get('MATHPIX_APP_KEY')
-GOOGLE_API_KEY==os.environ.get('GOOGLE_API_KEY')
+GOOGLE_API_KEY=os.environ.get('GOOGLE_API_KEY')
 
 
 

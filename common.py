@@ -96,8 +96,11 @@ def format_options(options):
     if options == "" or options == {}:
         return []
     try:
-        options_list = ast.literal_eval(options)
-        cleaned_options_list = [re.sub(r'^(\([a-zA-Z]\)|^[a-zA-Z0-9]+\.)|^[a-zA-Z0-9]+\.', '', option) for option in options_list]
+        if isinstance(options, list):
+            options_list = options
+        else:
+            options_list = ast.literal_eval(options)
+        cleaned_options_list = [re.sub(r'^(\([a-zA-Z]\)|^[a-zA-Z0-9]+\.)|^[a-zA-Z0-9]+\.|^[a-zA-Z0-9]+\)', '', option).strip() for option in options_list]
         return cleaned_options_list
     except:
         return options

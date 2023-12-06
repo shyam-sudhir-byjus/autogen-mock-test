@@ -3,6 +3,9 @@ from bson import ObjectId
 from constants import bloom_mapper_dict
 
 def remove_constraints(problem, constraint_type, percentages):
+    '''
+        Remove constraints if infeasible (Bloom/Diff/QType)
+    '''
     for constraint_param in percentages:
         constraint_name = f"{constraint_type}_Constraint_{constraint_param}"
         if constraint_name in problem.constraints:
@@ -12,6 +15,9 @@ def remove_constraints(problem, constraint_type, percentages):
             print(f"Constraint '{constraint_name}' not found in the model.")
 
 def remove_frequency_constraint(problem, question_vars, most_frequent_questions):
+    '''
+        Remove constraints if infeasible for frequency of questions
+    '''
     for q in most_frequent_questions:
         question_id = ObjectId(q['question_id'])
         if question_id in question_vars:
@@ -25,6 +31,9 @@ def remove_frequency_constraint(problem, question_vars, most_frequent_questions)
             print(f"Variable for question {question_id} not found in the model.")
 
 def remove_average_difficulty_constraint(problem, constraint_name):
+    '''
+        Remove constraints if infeasible for avg diff of questions
+    '''
     if constraint_name in problem.constraints:
         del problem.constraints[constraint_name]
         print(f"Constraint '{constraint_name}' removed.")
@@ -32,6 +41,9 @@ def remove_average_difficulty_constraint(problem, constraint_name):
         print(f"Constraint '{constraint_name}' not found in the model.")
 
 def remove_at_least_one_question_constraint(problem, chapter_list):
+    '''
+        Remove constraints if infeasible for atleast one question per chapter 
+    '''
     for chapter in chapter_list:
         constraint_name = f"AtLeastOneQuestionInChapter_{chapter}"
         constraint_name = constraint_name.replace(" ","_")
@@ -40,6 +52,9 @@ def remove_at_least_one_question_constraint(problem, chapter_list):
             problem.constraints.pop(constraint_name)
 
 def remove_topic_distribution_constraint(problem, percentages, constraint_type):
+    '''
+        Remove constraints if infeasible for topic distribution according to weightage
+    '''
     for constraint_param in percentages:
         constraint_name = f"{constraint_type}_Constraint_{constraint_param}"
         if constraint_name in problem.constraints:
@@ -72,7 +87,9 @@ def get_chapter_topic_weights(questions_list):
     return chapter_weights, topic_weights
 
 def add_constraints_bloom(problem, question_vars, questions_list, percentages, tolerance, total_marks):
-
+    '''
+        Total Marks of each bloom should correspond to the weightage of the respective blooms
+    '''
     for constraint_param, weight in percentages.items():
         problem += (
                 (weight - tolerance) * total_marks <=
@@ -82,7 +99,9 @@ def add_constraints_bloom(problem, question_vars, questions_list, percentages, t
             )
     
 def add_constraints_difficult(problem, question_vars, questions_list, percentages, tolerance, total_marks):
-
+    '''
+        Total Marks of each difficulty should correspond to the weightage of the respective difficulty
+    '''
     for constraint_param, weight in percentages.items():
         problem += (
                 (weight - tolerance) * total_marks <=
@@ -92,7 +111,9 @@ def add_constraints_difficult(problem, question_vars, questions_list, percentage
             )
     
 def add_constraints_question_type(problem, question_vars, questions_list, percentages, tolerance, total_marks):
-
+    '''
+        Total Marks of each QType should correspond to the weightage of the respective QType
+    '''
     for constraint_param, weight in percentages.items():
         problem += (
                 (weight - tolerance) * total_marks <=
@@ -102,7 +123,9 @@ def add_constraints_question_type(problem, question_vars, questions_list, percen
             )
 
 def add_constraints_chapter(problem, question_vars, questions_list, percentages, tolerance, total_marks):
-
+    '''
+        Total Marks of each chapter should correspond to the weightage of the respective chapter
+    '''
     for constraint_param, weight in percentages.items():
         try:
             problem += (
@@ -114,7 +137,9 @@ def add_constraints_chapter(problem, question_vars, questions_list, percentages,
             continue
 
 def add_constraints_topic(problem, question_vars, questions_list, percentages, tolerance, total_marks):
-
+    '''
+        Total Marks of each topic should correspond to the weightage of the respective topic
+    '''
     for constraint_param, weight in percentages.items():
         try:
             problem += (

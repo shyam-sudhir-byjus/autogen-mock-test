@@ -6,6 +6,11 @@ from get_parameters import (
     MATHPIX_APP_KEY,
     MATHPIX_APP_ID,
     GOOGLE_API_KEY,
+    CHAT_COMPLETION_MODEL,
+    OPENAI_API_KEY,
+    OPENAI_API_TYPE,
+    OPENAI_BASE_KEY,
+    OPENAI_API_VERSION
 )
 import requests
 import json
@@ -13,8 +18,18 @@ from utils.db_utils import *
 import time
 import base64
 from google.cloud import vision
+import openai
 
 
+SYS_PROMPTS = '''
+ You are an intelligent student for grade VI to grade XII . You have been topper in all subjects and have scored extraordinarily well. 
+ You will be given two version of the answer for a question.You will are given two versions of OCR. So pick out the best version of answer which makes sense and is coherent in read. 
+ If it is a math question. Please take a extra care of equations and symbols while deciding best answer version.
+ Your output should have  best version identified should come as json doc with key as answer: 
+ Sample Output :
+    "{Answer: best version answer}"
+
+'''
 def evaluating_student_at_runtime(exam_id, score):
     # get the exam Id
     # after every delay of 50 seconds call api and get the result
@@ -216,6 +231,27 @@ def detect_text(base64_image):
         )
 
     return {"text": text, "isError": False}
+
+def chat_gpt_decision(mathpix_answer, google_ocr_version):
+    prompts = f'Answer Version 1 {google_ocr_version}. Answer Version 2 {mathpix_answer}'
+    messages = [
+        {"role": "system", "content": SYS_PROMPTS},
+        {"role": "user", "content": prompts},
+    ]
+    gpt_response = openai.ChatCompletion.create(
+        api_type=OPENAI_API_TYPE,
+        api_version=OPENAI_API_VERSION,
+        api_base=OPENAI_BASE_KEY,
+        api_key=OPENAI_API_KEY,
+        engine=CHAT_COMPLETION_MODEL,
+        messages=messages,
+        max_tokens=4000,
+        temperature=0,
+    )
+
+    gpt_response = gpt_response["choices"][0]["message"]["content"]
+    #print(completion)
+    return json.loads(gpt_response)
 
 
 ## Uncommet below for  GPT4 Vision Preview  .

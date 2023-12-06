@@ -36,6 +36,10 @@ def pulp_solver(questions_list, similar_questions_list, input_data, most_frequen
 
     problem = LpProblem("Question_Selection", LpMinimize)
 
+    '''
+        Returns Weightage of Chapter/Topic from the given questions list
+        for the input parameters
+    '''
     chapter_weights, topic_weights = get_chapter_topic_weights(questions_list)
 
     question_vars = {

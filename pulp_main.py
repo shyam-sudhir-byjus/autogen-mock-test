@@ -15,6 +15,10 @@ def questions_utils(input_data):
     seen = set()
     chapters = [item for item in chapters if item.lower() not in seen and not seen.add(item.lower())]
 
+    '''
+      Get input parameters to pass onto the PULP Optimisation Solver
+    '''
+
     grade = input_data['grade']
     subject = input_data['subject']
     curriculum = input_data['curriculum']

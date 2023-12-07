@@ -30,6 +30,9 @@ SYS_PROMPTS = '''
     "{Answer: best version answer}"
 
 '''
+
+
+
 def evaluating_student_at_runtime(exam_id, score):
     # get the exam Id
     # after every delay of 50 seconds call api and get the result
@@ -175,13 +178,6 @@ def perform_ocr(base64_encoded_image):
 
 
 def getGoogleOCR(image_base64):
-    # try:
-    #     image_response = requests.get(image_url)
-    #     image_content = image_response.content
-    #     image_base64 = base64.b64encode(image_content).decode('utf-8')
-    # except:
-    #     image_base64 = image_url.split(',')[1]
-
     url = "https://vision.googleapis.com/v1/images:annotate?key={}".format(GOOGLE_API_KEY)
     headers = {"Content-Type": "application/json"}
     payload = {

@@ -9,11 +9,15 @@ import time
 app = Flask(__name__)
 CORS(app)
 
-
+# To start the subjective grading task. 
+# Input Exam ID ( fetched from Database)
+#Output Exam Score (User given )
 @app.route("/start_grading_task/", methods=["POST"])
 def get_student_grading_info():
     exam_id = get_last_exam_id()
     score = request.json.get("score", -1)
+
+    # Seperat thread to work in background 
     thread = Thread(
         target=response_formatter.evaluating_student_at_runtime,
         args=(
@@ -92,64 +96,67 @@ def get_questions():
     return jsonify({"questions": res, "properties": messages})
 
 
+# Save the answer given by user  
 @app.route("/save_question_progress/", methods=["POST"])
 def save_question_progress():
     request.exam_id = request.json.get("exam_id")
     request.question_id = request.json.get("question_id")
     request.user_answer = request.json.get("user_answer")
-    response_formatter.save_exam_progress_response_fromatter(request.exam_id ,request.question_id, request.user_answer )
+    response_formatter.save_exam_progress_response_fromatter(
+        request.exam_id, request.question_id, request.user_answer
+    )
     return {
         "response": "question_response_save_in_db",
         "status": {"isError": False, "message": "API call sucessful"},
     }
 
-
-@app.route("/grading_status_stream/", methods=['GET'])
+# Event Stream API : IT will continuously send messages to client side 
+# Once all the exams are graded ( checked from the database), it will yield output as done.
+@app.route("/grading_status_stream/", methods=["GET"])
 def grading_status_stream():
-    print('entering')
+    print("entering")
     score = int(request.args.get("score"))
     exam_id = int(request.args.get("exam_id"))
-
     def generate(exam_id, score):
-        while not response_formatter.are_all_questions_graded(
-            exam_id, score
-        ):
+        while not response_formatter.are_all_questions_graded(exam_id, score):
             yield "data: {}\n\n".format("waiting")
             time.sleep(50)  # Check every 5 seconds
         yield "data: {}\n\n".format("done")
 
-    val  =Response(generate(exam_id, score), mimetype="text/event-stream")
-    print(val)
-    return val
+    return Response(generate(exam_id, score), mimetype="text/event-stream")
 
-@app.route("/show_user_marks/", methods=['GET'])
+
+#Show the final marks and feedback to user
+# Input: Exam_id 
+# Output : Question by Question Details
+@app.route("/show_user_marks/", methods=["GET"])
 def show_user_marks():
-    exam_id = int(request.args.get('exam_id'))
+    exam_id = int(request.args.get("exam_id"))
     val = response_formatter.get_question_marks_response_formatter(exam_id)
     return {
-        "response": val ,
-        "status":{
-            "isError":False,
-            "message":"Api call successfully"
-        }
+        "response": val,
+        "status": {"isError": False, "message": "Api call successfully"},
     }
 
-@app.route('/get_my_image_solution/',methods=["POST"])
+# OCR Feature for the solution 
+# Mathpix and Google Vision OCR => To get the answer 
+# chat_gpt_to decide which one is better
+@app.route("/get_my_image_solution/", methods=["POST"])
 def get_my_image_solution():
-    request.base64_image = request.json.get('base64_image')
-    content = response_formatter.perform_ocr(request.base64_image)
-    content_2 = response_formatter.getGoogleOCR(request.base64_image.split(',')[1])
-    final_response = response_formatter.chat_gpt_decision(content, content_2)
-    # final_response = final_response.replace('{','')
-    # final_response = final_response.replace('}','')
-
+    request.base64_image = request.json.get("base64_image")
+    mathpix = response_formatter.perform_ocr(request.base64_image)
+    google_ocr = response_formatter.getGoogleOCR(request.base64_image.split(",")[1])
+    final_response = response_formatter.chat_gpt_decision(mathpix, google_ocr)
     return {
-        "response":{"mathpix":content,"google_vision":content_2,'openai_identified':final_response['Answer']},
-        "status":{
-            "isError": False,
-            "message": "Api call successful"
-        }
+        "response": {
+            "mathpix": mathpix,
+            "google_vision": google_ocr,
+            "openai_identified": final_response["Answer"],
+        },
+        "status": {"isError": False, "message": "Api call successful"},
     }
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8509)
+

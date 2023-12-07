@@ -36,12 +36,19 @@ def pulp_solver(questions_list, similar_questions_list, input_data, most_frequen
 
     problem = LpProblem("Question_Selection", LpMinimize)
 
+    '''
+        Returns Weightage of Chapter/Topic from the given questions list
+        for the input parameters
+    '''
     chapter_weights, topic_weights = get_chapter_topic_weights(questions_list)
 
     question_vars = {
         q["_id"]: LpVariable(f"Question_{q['_id']}", 0, 1, LpBinary) for q in questions_list
     }
 
+    '''
+        Creating a Linear Programming Variable for model according to user difficulty
+    '''
     average_difficulty = LpVariable("Average_Difficulty", user_difficulty - 1, user_difficulty + 1)
     question_difficulties = lpSum([difficulty_mapper_dict[q["difficulty"]] * question_vars[q["_id"]] for q in questions_list])
     problem += (
@@ -56,9 +63,15 @@ def pulp_solver(questions_list, similar_questions_list, input_data, most_frequen
 
     chapter_questions = {chapter: [question_vars[q["_id"]] for q in questions_list if q["chapter"] == chapter] for chapter in set(q["chapter"] for q in questions_list)}
 
+    '''
+        Constraint for minimum one question from each chapter
+    '''
     for chapter, chapter_vars in chapter_questions.items():
         problem += lpSum(chapter_vars) >= 1, f"AtLeastOneQuestionInChapter_{chapter}"
 
+    '''
+        Constraint for total marks of mock test to be equal to given input total marks
+    '''
     problem += (
         lpSum([q["marks"] * question_vars[q["_id"]] for q in questions_list]) == total_marks,
         "Total_Marks_Constraint",
@@ -66,6 +79,9 @@ def pulp_solver(questions_list, similar_questions_list, input_data, most_frequen
 
     question_vars_dict = {q["_id"]: question_vars[q["_id"]] for q in questions_list}
 
+    '''
+        Constraint for similar questions, to avoid duplication of questions in final mock test
+    '''
     for row in similar_questions_list:
         index_of_sim_pairs = [str(row["ID1"]), str(row["ID2"])]
         
@@ -74,6 +90,10 @@ def pulp_solver(questions_list, similar_questions_list, input_data, most_frequen
             const = lpSum([question_vars_dict[ObjectId(q_id)] for q_id in index_of_sim_pairs]) <= 1
             problem += const, name
     
+    '''
+        Using Regional Level Personalisation, either from Nearby Schools, QNA or Pan India,
+        we receive the weights to the model for blooms, difficulty, question type etc.
+    '''
     weights_instance = Weights(db['city_school_question_tags_v2'], db['city_school_location_v2'], input_data)
     bloom_weights, difficulty_weights, question_type_weights, chapter_weights_school, bloom_nearby, diff_nearby, q_type_nearby, chapter_nearby, school_count = weights_instance._get_weights()
 
@@ -96,12 +116,18 @@ def pulp_solver(questions_list, similar_questions_list, input_data, most_frequen
     topic_percentages = {topic: lpSum([q["topic"] == topic for q in questions_list]) / len(questions_list) for topic, _ in topic_weights.items()}
     chapter_percentages = {chapter: lpSum([q["chapter"] == chapter for q in questions_list]) / len(questions_list) for chapter, _ in chapter_weights.items()}
 
+    '''
+        Function to add the constraints for bloom, difficulty, question type etc.
+    '''
     add_constraints_bloom(problem, question_vars, questions_list, bloom_percentages, tolerance, total_marks)
     add_constraints_difficult(problem, question_vars, questions_list, difficulty_percentages, tolerance, total_marks)
     add_constraints_question_type(problem, question_vars, questions_list, question_type_percentages, tolerance, total_marks)
     add_constraints_chapter(problem, question_vars, questions_list, chapter_percentages, tolerance, total_marks)
     add_constraints_topic(problem, question_vars, questions_list, topic_percentages, tolerance, total_marks)
     
+    '''
+        Constraint for most frequent questions, more priority to higher frequency questions
+    '''
     for q in most_frequent_questions:
         question_id = ObjectId(q['question_id'])
         if question_id in question_vars:
@@ -113,6 +139,10 @@ def pulp_solver(questions_list, similar_questions_list, input_data, most_frequen
     if LpStatus[problem.status] == "Optimal":
         return successMsg(questions_list, question_vars, chapter_weights, nearby_school_data, most_frequent_questions, [])
 
+    '''
+        If solution is infeasible, recursively remove the constraints in the order suggested by Product
+        1. Avg Diff 2. Bloom 3. Frequency 4. QuestionType 5. Topic Dist. 6. Atleast One Ques Per chapter
+    '''
     properties, selected_questions, flag = solve_recursive(problem, questions_list, question_vars, [
                                                         ("Average_Difficulty_Lower_Constraint", []),
                                                         ("Bloom", bloom_percentages),
@@ -121,7 +151,7 @@ def pulp_solver(questions_list, similar_questions_list, input_data, most_frequen
                                                         ("Topic_Distribution", topic_percentages),
                                                         ("AtLeastOneQuestionInChapter", chapter_questions),
                                                         # ("Chapter_Distribution", chapter_percentages),
-                                                        ("Difficulty", difficulty_percentages),
+                                                        # ("Difficulty", difficulty_percentages),
                                                         ], 
                                                         chapter_weights, nearby_school_data, most_frequent_questions,
                                                         [])

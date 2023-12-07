@@ -39,6 +39,25 @@ def get_check():
 
 @app.route("/get_chapters/", methods=["POST"])
 def get_chapters():
+    '''
+    Returns the list of chapters for given parameters
+    
+    Endpoint: 
+        /get_chapter_list
+
+    Method: 
+        POST
+    
+    Request:
+        {
+            "subject": String,
+            "grade": String,
+            "curriculum": String
+        }
+    
+    Response: 
+        List of Chapter Names (String)
+    '''
     request_data = request.get_json()
     chapters = chapter_utils(request_data)
     return jsonify({"chapters": chapters})
@@ -46,6 +65,29 @@ def get_chapters():
 
 @app.route("/get_questions/", methods=["POST"])
 def get_questions():
+    """
+    Returns dictionary of optimised questions, with their properties
+    
+    Endpoint: 
+        /get_questions
+
+    Method: 
+        POST
+    
+    Request:
+        {
+            "city": String ,
+            "curriculum": String,
+            "chapter": List[String],
+            "difficulty_level" : String,
+            "subject": String,
+            "grade": String,
+            "total_marks": Float
+        }
+    
+    Response: 
+        Dict of Optimisd Questions with Properties [Dict]
+    """
     request_data = request.get_json()
     messages, res = questions_utils(request_data)
     for data in res:
@@ -116,4 +158,5 @@ def get_my_image_solution():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5004)
+    app.run(debug=True, host="0.0.0.0", port=8509)
+

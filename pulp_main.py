@@ -15,6 +15,10 @@ def questions_utils(input_data):
     seen = set()
     chapters = [item for item in chapters if item.lower() not in seen and not seen.add(item.lower())]
 
+    '''
+      Get input parameters to pass onto the PULP Optimisation Solver
+    '''
+
     grade = input_data['grade']
     subject = input_data['subject']
     curriculum = input_data['curriculum']
@@ -29,9 +33,9 @@ def questions_utils(input_data):
     similar_questions_list = get_dedup_list(ids_for_dedup)
     most_frequent_questions = get_frequency_list(ids_for_dedup)
     messages, res, rerun = pulp_solver(questions_list, similar_questions_list, input_data, most_frequent_questions, user_difficulty, total_marks)
-    if rerun:
-        total_marks = total_marks_helper(total_marks)
-        messages, res, rerun = pulp_solver(questions_list, similar_questions_list, input_data, most_frequent_questions, user_difficulty, total_marks)
+    # if rerun:
+    #     total_marks = total_marks_helper(total_marks)
+    #     messages, res, rerun = pulp_solver(questions_list, similar_questions_list, input_data, most_frequent_questions, user_difficulty, total_marks)
     
     return messages, res
 

@@ -51,9 +51,9 @@ def evaluating_student_at_runtime(exam_id, score):
                 )
                 if indx == -1:
                     print("Indexing Failed")
-        time.sleep(60)
+        time.sleep(30)
         count += 1
-        if count == 30:
+        if count == 60:
             break
     return
 
